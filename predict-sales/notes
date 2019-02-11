@@ -1,0 +1,30 @@
+
+sales_train
+    item_cnt_day - number of products sold. You are predicting a monthly amount of this measure
+    item_price - current price of an item
+    shop_id - unique identifier of a shop
+    item_id - unique identifier of a product
+    date - date in format dd/mm/yyyy
+    date_block_num - a consecutive month number, used for convenience. January 2013 is 0, February 2013 is 1,..., October 2015 is 33
+
+shops
+    shop_name - name of shop
+    shop_id - unique identifier of a shop
+
+items
+    item_category_id - unique identifier of item category
+    item_id - unique identifier of a product
+    item_name - name of item
+
+item_categories
+    item_category_name - name of item category
+    item_category_id - unique identifier of item category
+
+samples_submissions
+    item_cnt_month - number of products sold. You are predicting a monthly amount of this measure
+    ID - an Id that represents a (Shop, Item) tuple within the test set
+
+test
+    ID - an Id that represents a (Shop, Item) tuple within the test set
+    shop_id - unique identifier of a shop
+    item_id - unique identifier of a product
