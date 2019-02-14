@@ -33,21 +33,30 @@ shops = pd.read_csv("datasets/shops.csv")
 
 shops = np.sort(train.item_id.unique())
 
-groups = train.groupby('date_block_num').groups
-date_block_num = []
-num_items = []
-for _, g in train.groupby('date_block_num'):
-    date_block_num.append(_)
-    num_items.append(g.sum('item_id'))
+print("Calculating plots by month...")
+unique_items_month = train.groupby('date_block_num').item_id.nunique()
+unique_shops_month = train.groupby('date_block_num').shop_id.nunique()
+items_sold_month   = train.groupby('date_block_num').item_cnt_day.sum()
 
-item_cnt = train.groupby(['item_price']).agg({'item_cnt_day': sum}).sort_index()
-item_cnt = item_cnt.nlargest(100, 'item_cnt_day').sort_index()
+print("Calculating revenue...")
+train['revenue'] = train.item_price * train.item_cnt_day
+revenue_month = train.groupby('date_block_num').revenue.sum()
+revenue_shop  = train.groupby('shop_id').revenue.sum()
+revenue_item  = train.groupby('item_id').revenue.sum()
 
-#plt.plot(item_cnt.index, item_cnt.values)
-plt.plot(groups.keys(), [len(values) for values in groups.values()])
-plt.ylabel('Number of items')
-plt.xlabel('Months')
+print("Calculating plots by shop...")
+unique_items_shop = train.groupby('shop_id').item_id.nunique()
+items_sold_shop   = train.groupby('shop_id').item_cnt_day.sum()
+
+print("Calculating plots by item...")
+unique_shops_item = train.groupby('item_id').shop_id.nunique()
+
+print("Creating plot...")
+plt.plot(revenue_item.index, revenue_item)
+plt.ylabel('Revenue (€)')
+plt.xlabel('Items')
 plt.show()
+plt.pause(100000000)
 
 sys.exit()
 
