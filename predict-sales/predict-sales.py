@@ -69,9 +69,6 @@ print("Reading datasets...")
 train = pd.read_csv("datasets/sales_train.csv")
 test = pd.read_csv("datasets/test.csv")
 
-train = train[int(train.shape[0]*0.1):]
-test_ = train[:int(train.shape[0]*0.1)]
-
 items = pd.read_csv("datasets/items.csv")
 item_categories = pd.read_csv("datasets/item_categories.csv")
 shops = pd.read_csv("datasets/shops.csv")
@@ -97,8 +94,13 @@ train_items = train.groupby([
                     'date_block_num'],
                     as_index=False).agg({'item_cnt_day': sum})
 
+train = pd.merge(train, items, how='left', on=['item_id','item_id'])
+train = pd.merge(train, item_categories, how = "left", on = ['item_category_id','item_category_id'])
+train = train.drop('item_name', axis=1)
+train = train.drop('item_category_name', axis=1)
+
 # Keep just shop, item and number of items sold by month combinations
-train = train.drop('date_block_num', axis=1)
+#train = train.drop('date_block_num', axis=1)
 train = train.rename(columns={'item_cnt_day': 'item_cnt_month'})
 
 train_items = train_items.drop('date_block_num', axis=1)
@@ -112,17 +114,16 @@ print("Mean item/shop count by month: {}".format(
 
 if train_model:
     # Prepare input / output for training
-    X = train[['shop_id', 'item_id']].values
+    X = train[['shop_id', 'item_id', 'item_category_id', 'date_block_num']].values
     y = train['item_cnt_month'].values
     X_items = train_items[['item_id']].values
     y_items = train_items['item_cnt_month'].values
 
     model = XGBRegressor()
-    model_items = XGBRegressor()
-    #model = DecisionTreeRegressor()
+    model_items = XGBRegressor(max_depth = 10, min_child_weight=0.5, subsample = 1, eta = 0.3, num_round = 1000, seed = 1)
 
     print("Training model 1...")
-    model.fit(X, y)
+    model.fit(X, y, eval_metric='rmse')
     print("Training model 2...")
     #model_items.fit(X_items, y_items)
     dump(model, 'models/.model-XGBoost-all-month{}'.format(month))
@@ -135,6 +136,14 @@ else:
 # Predict testing data
 print("Predicting results...")
 
+test = pd.merge(test, items, how='left', on=['item_id','item_id'])
+test = pd.merge(test, item_categories, how = "left", on = ['item_category_id','item_category_id'])
+test['date_block_num'] = 33
+
+print(test[['shop_id', 'item_id', 'item_category_id', 'date_block_num']].values)
+predict = model.predict(test[['shop_id', 'item_id', 'item_category_id', 'date_block_num']].values)
+
+"""
 predict = []
 for index, row in test.iterrows():
     item = row['item_id']
@@ -149,9 +158,10 @@ for index, row in test.iterrows():
         predict.append(pred[0])
     else:
         print("O")
-        predict.append(float(0))
+        predict.append(float(0))"""
 
 # Create submission file
 test.loc[:, 'item_cnt_month'] = pd.Series(predict)
+test = test.drop(['item_category_name', 'item_name', 'item_category_id', 'date_block_num'], axis=1)
 results = test.drop(['shop_id', 'item_id'], axis=1)
 results.to_csv('submission.csv', index=False)
