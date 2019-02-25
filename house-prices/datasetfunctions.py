@@ -54,13 +54,14 @@ def show_info(dataset):
     print(dataset.shape)
     print('Number of duplicates:', len(dataset[dataset.duplicated()]))
 
+
 def downcast_dtypes(df):
     """Downcast floating and integer types of a dataframe
     Source:
     https://www.kaggle.com/anqitu/feature-engineer-and-model-ensemble-top-10
     """
-    float_cols = [c for c in df if df[c].dtype == "float64"]
-    int_cols = [c for c in df if df[c].dtype in ["int64", "int32"]]
+    float_cols = [c for c in df if type(c) is not type(np.nan) and df[c].dtype == "float64"]
+    int_cols = [c for c in df if type(c) is not type(np.nan) and df[c].dtype in ["int64", "int32"]]
     df[float_cols] = df[float_cols].astype(np.float32)
     df[int_cols] = df[int_cols].astype(np.int16)
     return df
