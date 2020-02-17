@@ -29,6 +29,7 @@ for i in range(len(num_attributes.columns)):
 plt.tight_layout()
 plt.show()
 
+sys.exit()
 for i in range(len(num_attributes.columns)):
     fig.add_subplot(9, 4, i + 1)
     sns.boxplot(y=num_attributes.iloc[:, i])
